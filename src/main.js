@@ -20,17 +20,15 @@ var HighlightJSParser = Class(Parser, {
         self.ERR = /*grammar.Style.error ||*/ self.$ERR;
     }
     
-    ,tokenize: function( stream, state, row ) {
+    ,tokenize: function( stream, mode, row ) {
         var self = this, tokens = [], token, buf = [], id = null,
             plain_token = function( t ){ t.type = self.$DEF; return t; };
-        //state.line = row || 0;
-        if ( undef === state.pos ) state.pos = 0;
-        if ( stream.eol() ) { state.line++; if ( state.$blank$ ) state.bline++; }
+        //mode.state.line = row || 0;
+        if ( stream.eol() ) { mode.state.line++; if ( mode.state.$blank$ ) mode.state.bline++; }
         else while ( !stream.eol() )
         {
-            token = self.token( stream, state );
-            token.pos = state.pos; state.pos += token.token.length;
-            if ( state.$actionerr$ )
+            token = mode.parser.get( stream, mode );
+            if ( mode.state.$actionerr$ )
             {
                 if ( buf.length ) tokens = tokens.concat( map( buf, plain_token ) );
                 token.type = self.$DEF; tokens.push( token );
@@ -152,6 +150,7 @@ function get_mode( grammar, hljs )
         ;
         
         mode = {
+            Mode: HighlightJSMode,
             // this is supposed to be an already compiled mode
             compiled: true,
             aliases: HighlightJSMode.aliases || null,
@@ -165,13 +164,19 @@ function get_mode( grammar, hljs )
             beginRe: matchToken,
             endRe: matchToken,
             lexemesRe: getToken,
-            terminators: parseToken
+            terminators: parseToken,
+            submode: function( lang, mode ) {
+                HighlightJSMode.submode( lang, mode.Mode );
+            }
         };
         return mode;
     };
     
     HighlightJSMode.$id = uuid("highlightjs_grammar_mode");
     HighlightJSMode.$parser = new HighlightJSGrammar.Parser( parse_grammar( grammar ) );
+    HighlightJSMode.submode = function( lang, Mode ) {
+        HighlightJSMode.$parser.subparser( lang, Mode.$parser );
+    };
     HighlightJSMode.dispose = function( ) {
         if ( HighlightJSMode.$parser ) HighlightJSMode.$parser.dispose( );
         HighlightJSMode.$parser = null;
