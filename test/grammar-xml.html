@@ -60,7 +60,9 @@
 
         <script>
         // <![CDATA[
-        highlightjs_grammar_demo(document.getElementById('code'), "xml", xml_grammar);
+        highlightjs_grammar_demo(document.getElementById('code'), [
+            {language: "xml", grammar: xml_grammar}
+        ]);
         // ]]>
         </script>
     </body>

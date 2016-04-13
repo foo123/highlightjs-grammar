@@ -6,25 +6,23 @@
             body {
                 position: relative;
             }
-            pre {
-                max-height: 30em;
-                overflow: auto;
-            }
             pre > code.highlight {
                 outline: .4em solid red;
                 outline-offset: .4em;
             }
             code[class*="language"] {
                 overflow: visible;
+                max-height: 2500px;
             }
             pre[class*="language"] {
-                overflow: scroll;
-                max-height: 50em;
+                overflow: visible;
             }
         </style>
         <link type="text/css" rel="stylesheet" href="highlightjs/styles/default.css"/>
         <script src="highlightjs/highlight.js"></script>
         <script src="../build/highlightjs_grammar.js"></script>
+        <script src="grammars/javascript.js"></script>
+        <script src="grammars/css.js"></script>
         <script src="grammars/htmlmixed.js"></script>
         <script src="./demo.js"></script>
         
@@ -82,7 +80,11 @@ var bar = { foo: [1, 2, 3, {"foo3":"foo4"}],
 
         <script>
         // <![CDATA[
-        highlightjs_grammar_demo(document.getElementById('code'), "htmlmixed", htmlmixed_grammar);
+        highlightjs_grammar_demo(document.getElementById('code'), [
+             {language: "htmlmixed", grammar: htmlmixed_grammar}
+            ,{language: "javascript", grammar: js_grammar}
+            ,{language: "css", grammar: css_grammar}
+        ]);
         // ]]>
         </script>
     </body>
