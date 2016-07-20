@@ -206,7 +206,7 @@ function get_mode( grammar, hljs )
 * ```
 *
 [/DOC_MARKDOWN]**/
-var HighlightJSGrammar = exports['@@MODULE_NAME@@'] = {
+var HighlightJSGrammar = {
     
     VERSION: "@@VERSION@@",
     
