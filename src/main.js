@@ -20,9 +20,10 @@ var HighlightJSParser = Class(Parser, {
         self.ERR = /*grammar.Style.error ||*/ self.$ERR;
     }
     
-    ,tokenize: function( stream, mode, row ) {
-        var self = this, tokens = [], token, buf = [], id = null,
+    ,tokenize: function( stream, mode, row, tokens ) {
+        var self = this, token, buf = [], id = null, push = Array.prototype.push,
             plain_token = function( t ){ t.type = self.$DEF; return t; };
+        tokens = tokens || [];
         //mode.state.line = row || 0;
         if ( stream.eol() ) { mode.state.line++; if ( mode.state.$blank$ ) mode.state.bline++; }
         else while ( !stream.eol() )
@@ -30,7 +31,7 @@ var HighlightJSParser = Class(Parser, {
             token = mode.parser.get( stream, mode );
             if ( mode.state.$actionerr$ )
             {
-                if ( buf.length ) tokens = tokens.concat( map( buf, plain_token ) );
+                if ( buf.length ) push.apply( tokens, map( buf, plain_token ) );
                 token.type = self.$DEF; tokens.push( token );
                 buf.length = 0; id = null;
             }
@@ -38,13 +39,13 @@ var HighlightJSParser = Class(Parser, {
             {
                 if ( id !== token.name )
                 {
-                    if ( buf.length ) tokens = tokens.concat( buf );
+                    if ( buf.length ) push.apply( tokens, buf );
                     buf.length = 0; id = token.name;
                 }
                 buf.push( token );
             }
         }
-        if ( buf.length ) tokens = tokens.concat( buf );
+        if ( buf.length ) push.apply( tokens, buf );
         buf.length = 0; id = null;
         return tokens;
     }
