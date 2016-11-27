@@ -4153,7 +4153,7 @@ var Parser = Class({
             {
                 stream.start = token.space[0];
                 stream.pos = token.space[1];
-                token.space = null;
+                type = false; token.space = null;
             }
             else
             {
@@ -4174,8 +4174,8 @@ var Parser = Class({
         T[$value$] = stream.cur( 1 );
         if ( false !== type )
         {
-            type = Style[type] || DEFAULT;
-            T[$name$] = tokenizer.name;
+            type = type ? (Style[type] || DEFAULT) : DEFAULT;
+            T[$name$] = tokenizer ? tokenizer.name : null;
         }
         else if ( err )
         {
@@ -4396,17 +4396,32 @@ var HighlightJSParser = Class(Parser, {
 function get_mode( grammar, hljs ) 
 {
     var HighlightJSMode = function HighlightJSMode( hljs ) {
-        var tokens = null, token = null,
-            
-            mode,
-            
+        var mode = {
+                Mode: HighlightJSMode,
+                // this is supposed to be an already compiled mode
+                compiled: true,
+                aliases: HighlightJSMode.aliases || null,
+                case_insensitive: false,
+                relevance: 0,
+                contains: [],
+                parent: null,
+                keywords: null,
+                className: null,
+                $tokens: null, $token: null,
+                beginRe: null, endRe: null,
+                lexemesRe: null, terminators: null,
+                submode: function( lang, mode ) {
+                    HighlightJSMode.submode( lang, mode.Mode );
+                }
+            },
+        
             matchToken = {
                 lastIndex   : 0,
                 exec        : function( str ) {
                     var m = null;
-                    if ( token )
+                    if ( mode.$token )
                     {
-                        m = [token.token];
+                        m = [mode.$token.token];
                         m.index = 0;
                         this.lastIndex = m[0].length;
                     }
@@ -4418,13 +4433,13 @@ function get_mode( grammar, hljs )
                 lastIndex   : 0,
                 exec        : function( str ) {
                     var m = null;
-                    if ( token && !token.ret )
+                    if ( mode.$token && !mode.$token.ret )
                     {
-                        m = [token.token];
+                        m = [mode.$token.token];
                         m.index = 0;
                         this.lastIndex = m[0].length;
                         // returned, reset it
-                        token.ret = 1;
+                        mode.$token.ret = 1;
                     }
                     return m;
                 }
@@ -4439,11 +4454,11 @@ function get_mode( grammar, hljs )
                     {
                         self._str = str;
                         self.lastIndex = self.lastIndex || 0;
-                        tokens = HighlightJSMode.$parser.parse(str, TOKENS|ERRORS|FLAT).tokens;
-                        token = tokens.shift( );
-                        token.ret = 0;
+                        mode.$tokens = mode.Mode.$parser.parse(str, TOKENS|ERRORS|FLAT).tokens;
+                        mode.$token = mode.$tokens.shift( );
+                        mode.$token.ret = 0;
                         mode.parent = mode;
-                        if ( null === token.type )
+                        if ( null === mode.$token.type )
                         {
                             // unstyled
                             mode.keywords = null;
@@ -4452,19 +4467,19 @@ function get_mode( grammar, hljs )
                         {
                             // token.type is the syntax-highlight style
                             mode.keywords = { };
-                            mode.keywords[token.token] = [token.type, 1];
+                            mode.keywords[mode.$token.token] = [mode.$token.type, 1];
                         }
-                        m = [token.token];
+                        m = [mode.$token.token];
                         m.index = self.lastIndex;
                         self.lastIndex += m[0].length;
                     }
-                    else if ( tokens && tokens.length )
+                    else if ( mode.$tokens && mode.$tokens.length )
                     {
                         self.lastIndex = self.lastIndex || 0;
-                        token = tokens.shift( );
-                        token.ret = 0;
+                        mode.$token = mode.$tokens.shift( );
+                        mode.$token.ret = 0;
                         mode.parent = mode;
-                        if ( null === token.type )
+                        if ( null === mode.$token.type )
                         {
                             // unstyled
                             mode.keywords = null;
@@ -4473,9 +4488,9 @@ function get_mode( grammar, hljs )
                         {
                             // token.type is the syntax-highlight style
                             mode.keywords = { };
-                            mode.keywords[token.token] = [token.type, 1];
+                            mode.keywords[mode.$token.token] = [mode.$token.type, 1];
                         }
-                        m = [token.token];
+                        m = [mode.$token.token];
                         m.index = self.lastIndex;
                         self.lastIndex += m[0].length;
                     }
@@ -4483,34 +4498,18 @@ function get_mode( grammar, hljs )
                     {
                         self._str = null;
                         self.lastIndex = 0;
-                        tokens = null; token = null;
+                        mode.$tokens = null; mode.$token = null;
                         mode.parent = null; mode.keywords = null;
                     }
                     return m;
                 }
             }
         ;
-        
-        mode = {
-            Mode: HighlightJSMode,
-            // this is supposed to be an already compiled mode
-            compiled: true,
-            aliases: HighlightJSMode.aliases || null,
-            case_insensitive: false,
-            relevance: 0,
-            contains: [],
-            parent: null,
-            keywords: null,
-            className: null,
-            // a hack for hljs to introduce grammar token parsing
-            beginRe: matchToken,
-            endRe: matchToken,
-            lexemesRe: getToken,
-            terminators: parseToken,
-            submode: function( lang, mode ) {
-                HighlightJSMode.submode( lang, mode.Mode );
-            }
-        };
+        // a hack for hljs to introduce grammar token parsing
+        mode.beginRe = matchToken;
+        mode.endRe = matchToken;
+        mode.lexemesRe = getToken;
+        mode.terminators = parseToken;
         return mode;
     };
     
