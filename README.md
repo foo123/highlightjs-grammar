@@ -4,6 +4,9 @@ highlightjs-grammar
 
 __Transform a JSON grammar into a syntax-highlight mode for Highlight.js__
 
+
+![Highlightjs Grammar](/hjs-grammar.png)
+
 A simple and light-weight (~ 44kB minified, ~ 15kB zipped) [Highlight.js](https://github.com/isagalaev/highlight.js) add-on
 
 to generate highlightjs-compatible modes from a grammar specification in JSON format.
