@@ -1,6 +1,6 @@
 
 
-###HighlightJSGrammar Methods
+### HighlightJSGrammar Methods
 
 __For node:__
 
